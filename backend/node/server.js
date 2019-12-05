@@ -43,7 +43,7 @@ app.post('/api', (req, res) => {
         if (doc.length == 0) {
             res.json({ result: "don have username or password" })
         } else {
-            jwt.sign({ doc: doc }, 'secretkey', (err, token) => {
+            jwt.sign({ doc: doc }, 'secretkey', { expiresIn: '60s' }, (err, token) => {
                 res.json({
                     data: doc,
                     token
@@ -55,14 +55,24 @@ app.post('/api', (req, res) => {
         }
 
     });
-
-
-
     // FeedbackModel.create(req.body, (err, doc) => {
     //     if (err) res.json({ result: "false", username: username, password: password });
     //     res.json({ username: username, password: password });
     // })
 });
+
+app.post('/api/posts', verifyToken, (req, res) => {
+    jwt.verify(req.token, 'secretkey', (err, authData) => {
+        if (err) {
+            res.sendStatus(403);
+        } else {
+            res.json({
+                message: 'Post created...',
+                authData
+            });
+        }
+    });
+})
 
 app.get('/api', (req, res) => {
     FeedbackModel.find((err, doc) => {
@@ -70,6 +80,23 @@ app.get('/api', (req, res) => {
         res.json({ result: "success", data: doc })
     })
 })
+
+
+function verifyToken(req, res, next) {
+
+    const baererHeader = req.headers['authorization'];
+
+    if (typeof baererHeader !== 'undefined') {
+
+        const bearer = baererHeader.split(' ');
+        const bearerToken = bearer[1];
+        req.token = bearerToken
+        next();
+
+    } else {
+        res.sendStatus(403);
+    }
+}
 
 app.listen(3000, () => {
     console.log("Server is Running!!")
