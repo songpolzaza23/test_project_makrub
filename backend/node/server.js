@@ -4,8 +4,8 @@ const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const app = express();
 
-require('./db')
-const FeedbackModel = require('./schema');
+require('../database/db')
+const FeedbackModel = require('../schema/user');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
@@ -34,17 +34,29 @@ app.post('/api', (req, res) => {
     const firstname = req.body.firstname
     const lastname = req.body.lastname
 
+    console.log(req.body)
+
     FeedbackModel.find({ username, password }, (err, doc) => {
         if (err) {
             res.json({ result: "false!!" })
         }
-        if (doc == "") {
+        if (doc.length == 0) {
             res.json({ result: "don have username or password" })
         } else {
-            res.json({ data: doc })
+            jwt.sign({ doc: doc }, 'secretkey', (err, token) => {
+                res.json({
+                    data: doc,
+                    token
+                });
+                console.log(doc);
+                console.log(token);
+            });
+
         }
 
     });
+
+
 
     // FeedbackModel.create(req.body, (err, doc) => {
     //     if (err) res.json({ result: "false", username: username, password: password });
