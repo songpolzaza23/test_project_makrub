@@ -2,9 +2,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
-
 const app = express();
+
 require('./db')
+const FeedbackModel = require('./schema');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
@@ -27,11 +28,36 @@ app.get('/home', (req, res) => {
 });
 
 app.post('/api', (req, res) => {
+
     const username = req.body.username
     const password = req.body.password
+    const firstname = req.body.firstname
+    const lastname = req.body.lastname
 
-    res.json({ result: "success", username: username, password: password })
+    FeedbackModel.find({ username, password }, (err, doc) => {
+        if (err) {
+            res.json({ result: "false!!" })
+        }
+        if (doc == "") {
+            res.json({ result: "don have username or password" })
+        } else {
+            res.json({ data: doc })
+        }
+
+    });
+
+    // FeedbackModel.create(req.body, (err, doc) => {
+    //     if (err) res.json({ result: "false", username: username, password: password });
+    //     res.json({ username: username, password: password });
+    // })
 });
+
+app.get('/api', (req, res) => {
+    FeedbackModel.find((err, doc) => {
+        if (err) res.json({ result: "falsed!!" })
+        res.json({ result: "success", data: doc })
+    })
+})
 
 app.listen(3000, () => {
     console.log("Server is Running!!")
